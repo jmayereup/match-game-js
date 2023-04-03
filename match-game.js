@@ -60,11 +60,11 @@ class MatchGameMaker extends HTMLElement {
                 let tile2 = document.createElement('div');
                 tile2.classList.add("tile", "gametile");
                 tile2.setAttribute('data-term', pair.term);
-                tile2.setAttribute('data-translation', pair.translation);
+                // tile2.setAttribute('data-translation', pair.translation);
                 tile2.setAttribute('translate', 'yes');
                 tile2.id = (counter + 100);
                 tile2.addEventListener('click', handleTileClick);
-                tile2.textContent = pair.translation;
+                tile2.textContent = pair.term;
 
                 tilesArray.push(tile2);
 
