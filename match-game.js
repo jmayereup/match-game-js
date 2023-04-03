@@ -2,25 +2,21 @@ class MatchGameMaker extends HTMLElement {
     constructor() {
         super();
 
+
         const shadow = this.attachShadow({ mode: 'open' });
 
         const text = this.textContent.trim().split('\n').map(line => line.trim()).join('\n');
-        let wordbank = [];
+        const wordbank = getWordBank(text);
         let shuffledPairs = [];
         let tiles = [];
         let shuffledTiles = [];
         let firstTile = null;
-
-        // let game = generateMatchGame();
-
-        wordbank = getWordBank(text);
 
         shuffledPairs = shuffleArray(wordbank);
 
         tiles = createTiles(shuffledPairs);
 
         shuffledTiles = shuffleTiles(tiles);
-
 
 
 
@@ -54,8 +50,10 @@ class MatchGameMaker extends HTMLElement {
                 tile1.classList.add("tile", "gametile");
                 tile1.setAttribute('data-term', pair.term);
                 tile1.setAttribute('data-translation', pair.translation);
+                tile1.setAttribute('translate', 'no');
                 tile1.id = counter;
                 tile1.addEventListener('click', handleTileClick);
+                tile1.textContent = pair.term;
 
                 tilesArray.push(tile1);
 
@@ -63,8 +61,10 @@ class MatchGameMaker extends HTMLElement {
                 tile2.classList.add("tile", "gametile");
                 tile2.setAttribute('data-term', pair.term);
                 tile2.setAttribute('data-translation', pair.translation);
+                tile2.setAttribute('translate', 'yes');
                 tile2.id = (counter + 100);
                 tile2.addEventListener('click', handleTileClick);
+                tile2.textContent = pair.translation;
 
                 tilesArray.push(tile2);
 
@@ -101,7 +101,7 @@ class MatchGameMaker extends HTMLElement {
                 clickedTile = null;
             }
             if (firstTile && clickedTile) {
-                if (firstTile.dataset.english === clickedTile.dataset.english) {
+                if (firstTile.dataset.term === clickedTile.dataset.term) {
                     firstTile.textContent = "\uD83D\uDE00";
                     clickedTile.textContent = "\uD83D\uDE00";
                     firstTile.classList.add("matched");
@@ -119,8 +119,28 @@ class MatchGameMaker extends HTMLElement {
 
             }
         }
+
+        function playAgain(event) {
+            event.preventDefault();
+            tiles = null;
+            firstTile = null;
+            shuffledPairs = null;
+            shuffledTiles = null;
+            shadowDiv.innerHTML = "";
+
+            shuffledPairs = shuffleArray(wordbank);
+            tiles = createTiles(shuffledPairs);
+            shuffledTiles = shuffleTiles(tiles);
+            shuffledTiles.forEach(div => {
+                shadowDiv.appendChild(div);
+            });
+
+            console.log("tiles", shuffledTiles);
+        }
+
         shadow.innerHTML = `
-        <syle>
+
+        <style>
         .matchgamecontainer {
             display: flex;
             flex-wrap: wrap;
@@ -128,6 +148,7 @@ class MatchGameMaker extends HTMLElement {
         }
         
         .tile {
+            display: flex;
             min-width: 30%;
             height: 80px;
             margin: 10px;
@@ -135,12 +156,18 @@ class MatchGameMaker extends HTMLElement {
             background-color: rgb(155, 235, 224);
             border-radius: 5px;
             cursor: pointer;
-            text-align: center;
-            font-size: large;
+            align-content: center;
+            justify-content: center;
+            display: flex;
             font-weight: bold;
             transition: background-color 0.3s;
             flex-wrap: wrap;
+            word-break: break-all;
         
+        }
+
+        .not-displayed {
+           display: none; 
         }
         
         .clicked {
@@ -167,9 +194,82 @@ class MatchGameMaker extends HTMLElement {
             width: 120px;
           }
         
+        h3 {
+            text-align: center;
+        }
+
+        .button {
+            appearance: none;
+            background-color: #2ea44f;
+            border: 1px solid rgba(27, 31, 35, .15);
+            border-radius: 6px;
+            box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+            box-sizing: border-box;
+            color: #fff;
+            cursor: pointer;
+            display: inline-block;
+            font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            padding: 6px 16px;
+            position: relative;
+            text-align: center;
+            text-decoration: none;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            vertical-align: middle;
+            white-space: nowrap;
+          }
+          
+          .button:focus:not(:focus-visible):not(.focus-visible) {
+            box-shadow: none;
+            outline: none;
+          }
+          
+          .button:hover {
+            background-color: #2c974b;
+          }
+          
+          .button:focus {
+            box-shadow: rgba(46, 164, 79, .4) 0 0 0 3px;
+            outline: none;
+          }
+          
+          .button:disabled {
+            background-color: #94d3a2;
+            border-color: rgba(27, 31, 35, .1);
+            color: rgba(255, 255, 255, .8);
+            cursor: default;
+          }
+          
+          .button:active {
+            background-color: #298e46;
+            box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;
+          }    
+
+          .nav-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
         
         </style>
-        `;
+        <h3>Match the Tiles</h3>
+        <div id="game" class="matchgamecontainer"></div>
+
+        <div class="nav-buttons"><input id="btn-play-again" class="button" type="button" value="Play Again"></div>
+
+         `;
+
+        const button = shadow.querySelector("#btn-play-again").addEventListener('click', playAgain);
+
+        const shadowDiv = shadow.querySelector("#game");
+        console.log("shadowDiv", shadowDiv);
+        shuffledTiles.forEach(div => {
+            shadowDiv.appendChild(div);
+        });
 
     }
 }
